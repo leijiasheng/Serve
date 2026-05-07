@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册结果</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入外部CSS -->
+    <link rel="stylesheet" href="/successful.css">
+</head>
+<body>
+
+<div class="success-card">
+    <div class="icon-wrap">
+        <i class="fas fa-check-circle"></i>
+    </div>
+
+    <!-- 统一成功页面：注册成功 / 修改密码成功 / 忘记密码成功 -->
+    <div th:if="${result != null}">
+        <h1 th:text="${result.message}">操作成功</h1>
+
+        <!-- 根据返回信息自动判断显示文案 -->
+        <div th:if="${result.message.contains('注册')}">
+            <p>您的账号已成功注册，请登录</p>
+        </div>
+        <div th:if="${result.message.contains('修改密码') or result.message.contains('重置密码')}">
+            <p>密码已重置成功，请登录</p>
+        </div>
+        <div th:if="${result.message.contains('删除')}">
+            <p>用户删除成功</p>
+        </div>
+
+        <a th:if="${result.message.contains('删除用户')}" href="/userList" class="to-login">返回</a>
+        <a th:unless="${result.message.contains('删除用户')}" href="/login" class="to-login">前往登录</a>    </div>
+</div>
+<script>
+    // 全局加载保存的字体
+    document.addEventListener('DOMContentLoaded', function(){
+        const f = localStorage.getItem('appFont');
+        if(f) document.body.style.fontFamily = f;
+    })
+</script>
+</body>
+</html>

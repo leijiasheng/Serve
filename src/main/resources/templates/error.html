@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>操作错误</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全局字体统一写在这里 */
+        html, body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f7f8fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .error-box {
+            background: #fff;
+            padding: 50px 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .error-icon {
+            font-size: 50px;
+            color: #ff4d4f;
+            margin-bottom: 15px;
+        }
+
+        .error-title {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .error-desc {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 35px;
+            background-color: #1677ff;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 15px;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background-color: #0958d9;
+        }
+    </style>
+</head>
+
+<!-- 统一失败页面-->
+
+<body>
+<div class="error-box" th:if="${result != null}">
+    <div class="error-icon">❌</div>
+    <h2 class="error-title">操作失败</h2>
+    <p class="error-desc" th:text="${result.message}">您的操作无效，请返回后重试</p>
+
+    <!-- 智能判断返回地址 -->
+    <button class="back-btn"
+            th:if="${result.message.contains('注册')}"
+            onclick="window.location.href='/reg'">
+        返回注册
+    </button>
+    <button class="back-btn"
+            th:if="${result.message.contains('重置密码')}"
+            onclick="window.location.href='/forgetPwd'">
+        返回重置密码
+    </button>
+    <button class="back-btn"
+            th:if="${result.message.contains('登录')}"
+            onclick="window.location.href='/login'">
+        返回登录
+    </button>
+    <button class="back-btn"
+            th:if="${result.message.contains('个人')}"
+            onclick="window.location.href='/person'">
+        返回个人中心
+    </button>
+    <button class="back-btn"
+            th:if="${result.message.contains('修改密码')}"
+            onclick="window.location.href='toUpdatePwd'">
+        返回修改密码
+    </button>
+    <button class="back-btn"
+            th:if="${result.message.contains('删除用户')}"
+            onclick="window.location.href='/index'">
+        返回首页
+    </button>
+<!--    <button class="back-btn"-->
+<!--            th:if="${!result.message.contains('注册') and !result.message.contains('密码')}"-->
+<!--            onclick="window.location.href='/login'">-->
+<!--        返回登录-->
+<!--    </button>-->
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const f = localStorage.getItem('appFont');
+        if(f) document.body.style.fontFamily = f;
+    })
+</script>
+</body>
+</html>

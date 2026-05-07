@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理列表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+        }
+
+        body {
+            background: linear-gradient(45deg, #667eea, #764ba2, #5b86e5, #36d1dc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            max-height: calc(100vh - 40px);
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航 */
+        /* 顶部导航 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .back-btn {
+            padding: 8px 14px;
+            background: #ff4d4f;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .search-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .search-input {
+            width: 190px;
+            padding: 7px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        .search-btn {
+            padding: 7px 12px;
+            background: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* 表格 */
+        .table-wrapper {
+            flex: 1;
+            overflow: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        td, th {
+            border: 1px solid #eee;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+
+        /* 底部：总数 + 分页 */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            flex-shrink: 0;
+        }
+        .total-info {
+            font-size: 14px;
+            color: #666;
+        }
+        .page-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .page-btn {
+            padding: 8px 14px;
+            background: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .page-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .page-info {
+            font-size: 13px;
+            color: #666;
+        }
+        .del {
+            color: #ff4d4f;
+            background: none;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 顶部：返回 / 标题 / 搜索 -->
+    <div class="header">
+        <button class="back-btn" onclick="location.href='/index'">返回首页</button>
+        <h2 class="title">用户管理中心</h2>
+        <form class="search-group" th:action="@{/userList}" method="get">
+            <label>
+                <input type="text" class="search-input" name="keyWord"
+                       placeholder="请输入学号或用户名"
+                       autocomplete="off">
+            </label>
+            <!--                   required-->
+<!--                   oninvalid="this.setCustomValidity('搜索内容不能为空，请输入学号或用户名！')"-->
+<!--                   oninput="this.setCustomValidity('')">-->
+            <button class="search-btn" type="submit">搜索</button>
+        </form>
+    </div>
+
+    <!-- 表格 -->
+    <div class="table-wrapper">
+        <table>
+            <tr>
+                <th style="width:10%">ID</th>
+                <th style="width:25%">学号</th>
+                <th style="width:25%">用户名</th>
+                <th style="width:30%">邮箱</th>
+                <th style="width:10%">删除</th>
+            </tr>
+            <tr th:each="user : ${userList}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.studentNum}"></td>
+                <td th:text="${user.userName}"></td>
+                <td th:text="${user.email}"></td>
+                <td>
+                    <form th:action="@{/user/delete}" method="post" style="display:inline" onsubmit="return confirm('确定删除？')">
+                        <input type="hidden" name="studentNum" th:value="${user.studentNum}">
+                        <button type="submit" class="del">删</button>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 底部：总数（左） + 分页（右） -->
+    <div class="footer">
+        <div class="total-info">总数据：<span th:text="${total}"></span> 条</div>
+        <div class="page-group">
+            <button class="page-btn" th:disabled="${currentPage le 1}" onclick="prevPage()">上一页</button>
+            <button class="page-btn" th:disabled="${currentPage ge totalPage}" onclick="nextPage()">下一页</button>
+            <div class="page-info" th:text="${currentPage} + ' / ' + ${totalPage}"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getPageNum() {
+        const params = new URLSearchParams(window.location.search);
+        return parseInt(params.get("pageNum")) || 1;
+    }
+    function getKeyword() {
+        return new URLSearchParams(window.location.search).get("keyWord") || "";
+    }
+    function nextPage() {
+        location.href = `/userList?pageNum=${getPageNum() + 1}&keyWord=${getKeyword()}`;
+    }
+    function prevPage() {
+        location.href = `/userList?pageNum=${getPageNum() - 1}&keyWord=${getKeyword()}`;
+    }
+</script>
+</body>
+</html>

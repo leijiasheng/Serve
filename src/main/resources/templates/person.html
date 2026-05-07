@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人中心 - 淮北师范大学一站式生活服务平台</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* 全局字体统一写在这里 */
+    html, body, input, textarea {
+      font-family: inherit !important;
+    }
+
+    :root {
+      --primary-color: #4f46e5;
+      --primary-hover: #4338ca;
+      --text-color: #333;
+      --text-light: #666;
+      --input-bg: #f3f4f6;
+      --white: #ffffff;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background: linear-gradient(45deg, #667eea, #764ba2, #5b86e5, #36d1dc);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .profile-card {
+      background: var(--white);
+      width: 100%;
+      max-width: 500px;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      overflow: hidden;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-color);
+      margin-bottom: 30px;
+    }
+
+    .info-item {
+      background: var(--input-bg);
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      text-align: left;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .info-item i {
+      font-size: 20px;
+      color: var(--primary-color);
+      margin-right: 14px;
+      width: 24px;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    .info-item .label {
+      font-size: 15px;
+      color: var(--text-light);
+      margin-right: 10px;
+      white-space: nowrap;
+    }
+
+    .info-item .value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-color);
+      background: transparent;
+      border: none;
+      outline: none !important;
+      box-shadow: none !important;
+      width: 100%;
+      text-align: left;
+      font-family: inherit !important;
+    }
+
+    .info-item .value[readonly] {
+      color: var(--text-color) !important;
+      opacity: 1 !important;
+      font-weight: 600 !important;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .save-btn, .back-btn {
+      flex: 1;
+      padding: 12px 0;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .save-btn {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    /* 按钮禁用样式 */
+    .save-btn:disabled {
+      background: #9ca3af !important;
+      cursor: not-allowed !important;
+    }
+
+    .back-btn {
+      background: #f3f4f6;
+      color: #333;
+    }
+
+    #signature {
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      font: inherit !important;
+      color: inherit !important;
+      resize: none !important;
+      overflow: hidden !important;
+      width: auto !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      line-height: inherit !important;
+      display: inline-block !important;
+      vertical-align: top !important;
+      font-family: inherit !important;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="profile-card">
+  <form id="profileForm" action="/update" method="post" onsubmit="return checkFormChanged()">
+
+    <div class="avatar">
+      <img th:src="${user?.avatar} ?: 'https://picsum.photos/200/200'" src="https://picsum.photos/200/200" alt="头像">
+    </div>
+
+    <h2 class="profile-title">个人中心</h2>
+
+    <div class="info-item">
+      <i class="fas fa-user-circle"></i>
+      <span class="label">昵称：</span>
+      <input type="text" name="nickName" class="value" th:value="${user?.nickName}" value="张三" disabled>
+    </div>
+
+    <div class="info-item">
+      <i class="fas fa-id-card"></i>
+      <span class="label">学号：</span>
+      <input type="text" name="studentNum" class="value" th:value="${user?.studentNum}" value="2023001001" readonly>
+    </div>
+
+    <div class="info-item">
+      <i class="fas fa-envelope"></i>
+      <span class="label">邮箱：</span>
+      <input type="email" name="email" class="value" th:value="${user?.email}" value="example@mail.com" disabled>
+    </div>
+
+    <div class="info-item">
+      <i class="fas fa-comment"></i>
+      <span class="label">个性签名：</span>
+      <textarea
+              class="value"
+              id="signature"
+              name="personSign"
+              th:text="${user?.personSign}"
+              placeholder="这个人很懒，什么都没有留下~"
+              rows="1"
+              oninput="checkWordLimit()"
+              onblur="checkSignature()"
+              disabled></textarea>
+    </div>
+
+    <div class="action-row">
+      <button type="submit" class="save-btn" id="saveBtn" disabled>保存</button>
+      <button type="button" class="back-btn" onclick="location.href='/index'">返回首页</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // ====================== 核心逻辑 ======================
+  let originalData = {};
+
+  window.onload = function () {
+    originalData = {
+      nickName: document.querySelector('[name="nickName"]').value.trim(),
+      email: document.querySelector('[name="email"]').value.trim(),
+      personSign: document.querySelector('[name="personSign"]').value.trim()
+    };
+
+    document.querySelector('[name="nickName"]').disabled = false;
+    document.querySelector('[name="email"]').disabled = false;
+    document.getElementById('signature').disabled = false;
+
+    document.getElementById("saveBtn").disabled = false;
+    autoResize();
+  };
+
+  function checkFormChanged() {
+    const current = {
+      nickName: document.querySelector('[name="nickName"]').value.trim(),
+      email: document.querySelector('[name="email"]').value.trim(),
+      personSign: document.querySelector('[name="personSign"]').value.trim()
+    };
+
+    const isSame =
+            current.nickName === originalData.nickName &&
+            current.email === originalData.email &&
+            current.personSign === originalData.personSign;
+
+    if (isSame) {
+      alert("您未修改任何信息，无需保存！");
+      return false;
+    }
+
+    document.getElementById("saveBtn").disabled = true;
+    document.getElementById("saveBtn").innerText = "保存中...";
+    return true;
+  }
+
+  const MAX_SIGNATURE_LENGTH = 52;
+  const signatureEl = document.getElementById('signature');
+
+  function checkSignature() {
+    if (!signatureEl.value.trim()) {
+      signatureEl.placeholder = "这个人很懒，什么都没有留下~";
+    }
+    autoResize();
+  }
+
+  function checkWordLimit() {
+    if (signatureEl.value.length > MAX_SIGNATURE_LENGTH) {
+      signatureEl.value = signatureEl.value.slice(0, MAX_SIGNATURE_LENGTH);
+    }
+    autoResize();
+  }
+
+  function autoResize() {
+    signatureEl.style.height = "auto";
+    signatureEl.style.height = signatureEl.scrollHeight + "px";
+  }
+
+  // 全局加载保存的字体
+  document.addEventListener('DOMContentLoaded', function(){
+    const f = localStorage.getItem('appFont');
+    if(f) {
+      document.body.style.fontFamily = f;
+      document.documentElement.style.fontFamily = f;
+    }
+  })
+</script>
+
+</body>
+</html>

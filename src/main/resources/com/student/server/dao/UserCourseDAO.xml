@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.server.dao.UserCourseDAO">
+    <resultMap id="userCourseResultMap" type="com.student.server.dataobject.UserCourseDO">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="course_id" property="courseId"/>
+        
+        <association property="user" javaType="com.student.server.model.User">
+            <id column="user_id" property="id"/>
+            <result column="user_name" property="userName"/>
+            <result column="student_num" property="studentNum"/>
+        </association>
+
+        <association property="course" javaType="com.student.server.model.Course">
+            <id column="course_id" property="id"/>
+            <result column="course_num" property="courseNum"/>
+            <result column="name" property="name"/>
+            <result column="teacher" property="teacher"/>
+            <result column="course_time" property="courseTime"/>
+            <result column="course_room" property="courseRoom"/>
+            <result column="credit" property="credit"/>
+            <result column="total_capacity" property="totalCapacity"/>
+            <result column="selected_count" property="selectedCount"/>
+            <result column="remaining" property="remaining"/>
+        </association>
+    </resultMap>
+
+    <insert id="insertUserCourse">
+        insert into user_course(user_id, course_id)
+        values (#{userId}, #{courseId})
+    </insert>
+
+    <select id="selectUserCourseByUserId" parameterType="java.lang.Long" resultMap="userCourseResultMap">
+        select
+            uc.id,
+            uc.user_id,
+            uc.course_id,
+            u.id,
+            u.user_name,
+            u.student_num,
+            c.id,
+            c.course_num,
+            c.name,
+            c.teacher,
+            c.course_time,
+            c.course_room,
+            c.credit,
+            c.total_capacity,
+            c.selected_count,
+            c.remaining
+        from user_course uc
+        left join user u on uc.user_id = u.id
+        left join course c on uc.course_id = c.id
+        where uc.user_id=#{userId}
+    </select>
+
+    <delete id="deleteUserCourse">
+        delete
+        from user_course
+        where user_id=#{userId} and course_id=#{courseId}
+    </delete>
+
+    <select id="getByUserIdAndCourseId" resultMap="userCourseResultMap">
+        select id
+        from user_course
+        where user_id=#{userId} and course_id=#{courseId}
+    </select>
+
+    <select id="countSelectedCourse">
+        select count(*)
+        from user_course
+        where user_id=#{userId}
+    </select>
+    
+</mapper>

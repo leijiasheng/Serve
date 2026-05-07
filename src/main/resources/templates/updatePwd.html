@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修改密码 - 淮北师范大学一站式生活服务平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全局字体统一写在这里 */
+        html, body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-color: #333;
+            --text-light: #666;
+            --input-bg: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #5b86e5, #36d1dc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .profile-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .profile-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            background: var(--input-bg);
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            position: relative; /* 关键：让眼睛图标定位 */
+        }
+
+        .info-item i {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-right: 14px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .info-item input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 15px;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        /* 密码显示/隐藏眼睛样式 */
+        .toggle-pwd {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+        .toggle-pwd:hover {
+            color: var(--primary-color);
+        }
+
+        .tip {
+            font-size: 12px;
+            color: #ef4444;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            text-align: left;
+            padding-left: 5px;
+            height: 16px;
+        }
+
+        /* 并排按钮样式 */
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .save-btn, .back-btn {
+            flex: 1;
+            padding: 12px 0;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .save-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .back-btn {
+            background: #f3f4f6;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="profile-card">
+    <h2 class="profile-title">修改密码</h2>
+
+    <form id="pwdForm" autocomplete="off" action="/handleUpdatePwd" method="post">
+        <!-- 旧密码 -->
+        <div class="info-item">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="oldPwd" name="oldPwd" placeholder="请输入旧密码">
+            <i class="fas fa-eye toggle-pwd" onclick="togglePassword(this)"></i>
+        </div>
+
+        <!-- 新密码 -->
+        <div class="info-item">
+            <i class="fas fa-key"></i>
+            <input type="password" id="newPwd" name="newPwd" placeholder="请输入新密码">
+            <i class="fas fa-eye toggle-pwd" onclick="togglePassword(this)"></i>
+        </div>
+
+        <!-- 确认新密码 -->
+        <div class="info-item">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="confirmPwd" name="confirmPwd" placeholder="请再次输入新密码">
+            <i class="fas fa-eye toggle-pwd" onclick="togglePassword(this)"></i>
+        </div>
+
+        <div class="tip" id="tip"></div>
+
+        <!-- 两个按钮并排 -->
+        <div class="action-row">
+            <button type="submit" class="save-btn">确认修改</button>
+            <button type="button" class="back-btn" onclick="location.href='/setting'">返回</button>
+        </div>
+    </form>
+</div>
+
+<script>
+
+        // 全局加载保存的字体
+        document.addEventListener('DOMContentLoaded', function(){
+            const f = localStorage.getItem('appFont');
+            if(f) document.body.style.fontFamily = f;
+        })
+    const pwdForm = document.getElementById('pwdForm');
+    const oldPwd = document.getElementById('oldPwd');
+    const newPwd = document.getElementById('newPwd');
+    const confirmPwd = document.getElementById('confirmPwd');
+    const tip = document.getElementById('tip');
+
+    // 实时校验密码
+    confirmPwd.addEventListener('input', function () {
+        tip.textContent = newPwd.value !== confirmPwd.value ? '两次输入的密码不一致' : '';
+    });
+
+    // 提交验证
+    pwdForm.addEventListener('submit', function (e) {
+        const old = oldPwd.value.trim();
+        const p1 = newPwd.value.trim();
+        const p2 = confirmPwd.value.trim();
+
+        if (!old) {
+            alert('请输入旧密码');
+            e.preventDefault();
+            return;
+        }
+        if (!p1) {
+            alert('请输入新密码');
+            e.preventDefault();
+            return;
+        }
+        if (p1.length < 6) {
+            alert('密码长度不能少于6位');
+            e.preventDefault();
+            return;
+        }
+        if (p1 !== p2) {
+            alert('两次密码不一致');
+            e.preventDefault();
+            return;
+        }
+    });
+
+    // ========== 新增：显示/隐藏密码 ==========
+    function togglePassword(icon) {
+        const input = icon.previousElementSibling;
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
+    }
+</script>
+</body>
+</html>

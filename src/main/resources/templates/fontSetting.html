@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字体设置 - 淮北师范大学一站式生活服务平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-color: #333;
+            --text-light: #666;
+            --input-bg: #f3f4f6;
+            --white: #ffffff;
+            --border-color: #e5e7eb;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #5b86e5, #36d1dc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .font-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .font-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .font-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        .font-desc {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 6px;
+        }
+        .font-item {
+            padding: 18px 20px;
+            background: var(--input-bg);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .font-item:hover {
+            background: #e5e7eb;
+        }
+        .font-item.active {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        .back-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="font-card">
+    <div class="font-header">
+        <h2 class="font-title">字体设置</h2>
+        <p class="font-desc">选择你喜欢的页面字体</p>
+    </div>
+
+    <div class="font-list">
+        <div class="font-item" data-font="'system-ui'">系统默认字体</div>
+        <div class="font-item" data-font="'Microsoft YaHei'">微软雅黑</div>
+        <div class="font-item" data-font="'SimHei'">黑体</div>
+        <div class="font-item" data-font="'KaiTi'">楷体</div>
+        <div class="font-item" data-font="'SimSun'">宋体</div>
+
+        <!-- 👇 下面全是新增字体，原有完全不动 -->
+        <div class="font-item" data-font="'Arial'">Arial</div>
+        <div class="font-item" data-font="'Helvetica'">Helvetica</div>
+        <div class="font-item" data-font="'Times New Roman'">Times New Roman</div>
+        <div class="font-item" data-font="'Georgia'">Georgia</div>
+        <div class="font-item" data-font="'Courier New'">Courier New</div>
+        <div class="font-item" data-font="'PingFang SC'">苹方</div>
+        <div class="font-item" data-font="'Hiragino Sans GB'">冬青黑体</div>
+        <div class="font-item" data-font="'Microsoft JhengHei'">微软正黑体</div>
+        <div class="font-item" data-font="'STHeiti'">华文黑体</div>
+        <div class="font-item" data-font="'STKaiti'">华文楷体</div>
+        <div class="font-item" data-font="'STSong'">华文宋体</div>
+        <div class="font-item" data-font="'FZShuTi'">方正舒体</div>
+        <div class="font-item" data-font="'FZYaoti'">方正姚体</div>
+    </div>
+
+    <button class="back-btn" onclick="location.href='/setting'">返回</button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedFont = localStorage.getItem('appFont');
+        if (savedFont) {
+            document.body.style.fontFamily = savedFont;
+            const activeEl = document.querySelector(`[data-font="${savedFont}"]`);
+            if (activeEl) activeEl.classList.add('active');
+        }
+
+        document.querySelectorAll('.font-item').forEach(item => {
+            item.onclick = function() {
+                const font = this.dataset.font;
+                localStorage.setItem('appFont', font);
+                document.body.style.fontFamily = font;
+
+                document.querySelectorAll('.font-item').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+            };
+        });
+    });
+</script>
+
+</body>
+</html>

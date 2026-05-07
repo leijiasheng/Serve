@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 淮北师范大学一站式生活服务平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全局字体统一写在这里 */
+        html, body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-color: #333;
+            --text-light: #666;
+            --input-bg: #f3f4f6;
+            --white: #ffffff;
+            --danger-color: #ef4444;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #5b86e5, #36d1dc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .setting-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .setting-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .setting-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .setting-desc {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 6px;
+        }
+
+        /* 设置项样式 */
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .setting-item:hover {
+            background: #f9fafb;
+            padding-left: 6px;
+            padding-right: 6px;
+            border-radius: 8px;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .setting-left i {
+            font-size: 20px;
+            color: var(--primary-color);
+            width: 24px;
+            text-align: center;
+        }
+
+        .setting-text h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .setting-text p {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .setting-right i {
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        /* 退出登录按钮 */
+        .logout-btn {
+            width: 100%;
+            margin-top: 30px;
+            padding: 14px;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            width: 100%;
+            margin-top: 12px;
+            padding: 14px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="setting-card">
+    <div class="setting-header">
+        <h2 class="setting-title">系统设置</h2>
+        <p class="setting-desc">管理你的账号与偏好</p>
+    </div>
+
+    <!-- 设置项列表 -->
+    <div class="setting-list">
+        <div class="setting-item" onclick="toChangePwd()">
+            <div class="setting-left">
+                <i class="fas fa-lock"></i>
+                <div class="setting-text">
+                    <h3>修改密码</h3>
+                    <p>保障账号安全</p>
+                </div>
+            </div>
+            <div class="setting-right">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <!-- 只保留字体设置入口按钮 -->
+        <div class="setting-item" onclick="toFontSetting()">
+            <div class="setting-left">
+                <i class="fas fa-font"></i>
+                <div class="setting-text">
+                    <h3>字体设置</h3>
+                    <p>自定义页面显示字体</p>
+                </div>
+            </div>
+            <div class="setting-right">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <div class="setting-item" onclick="toPrivacy()">
+            <div class="setting-left">
+                <i class="fas fa-shield-alt"></i>
+                <div class="setting-text">
+                    <h3>隐私设置</h3>
+                    <p>控制个人信息展示</p>
+                </div>
+            </div>
+            <div class="setting-right">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+
+        <div class="setting-item" onclick="toSecurity()">
+            <div class="setting-left">
+                <i class="fas fa-user-shield"></i>
+                <div class="setting-text">
+                    <h3>账号安全</h3>
+                    <p>安全中心与登录记录</p>
+                </div>
+            </div>
+            <div class="setting-right">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 退出登录 -->
+    <button class="logout-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> 退出登录
+    </button>
+
+    <!-- 返回个人中心 -->
+    <button class="back-btn" onclick="location.href='/index'">
+        返回
+    </button>
+</div>
+
+<script>
+        // 全局加载保存的字体
+        document.addEventListener('DOMContentLoaded', function(){
+            const f = localStorage.getItem('appFont');
+            if(f) document.body.style.fontFamily = f;
+        })
+    // 退出登录功能
+    function logout() {
+        if (confirm('确定要退出登录吗？')) {
+            // 创建一个隐藏的 form 表单，用 POST 方式提交
+            let form = document.createElement('form');
+            form.action = '/user/logout';  // 你的退出接口
+            form.method = 'POST';          // 改为 POST
+            document.body.appendChild(form);
+            form.submit();
+            alert('退出登录成功！');
+            // 提交后提示
+        }
+    }
+
+    function toChangePwd() {
+        window.location.href='/toUpdatePwd';
+    }
+
+    // 字体设置页面跳转（你自己改API/路径）
+    function toFontSetting() {
+        window.location.href='/toFontSetting';
+    }
+
+    function toPrivacy() {
+        alert('跳转到隐私设置页面');
+    }
+
+    function toSecurity() {
+        alert('跳转到账号安全页面');
+    }
+</script>
+
+</body>
+</html>

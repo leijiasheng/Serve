@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.server.dao.CommentDAO">
+    <resultMap id="commentModelResultMap" type="com.student.server.model.Comment">
+        <id column="id" property="id"/>
+        <result column="content" property="content"/>
+        <result column="user_id" property="userId"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="reply_nick_name" property="replyNickName"/>
+        <result column="gmt_created" property="gmtCreated"/>
+        <result column="gmt_modified" property="gmtModified"/>
+
+        <association property="author" javaType="com.student.server.model.User">
+            <id column="user_id" property="id"/>
+            <result column="user_name" property="userName"/>
+            <result column="nick_name" property="nickName"/>
+            <result column="avatar" property="avatar"/>
+            <result column="email" property="email"/>
+            <result column="person_sign" property="personSign"/>
+            <result column="student_num" property="studentNum"/>
+        </association>
+
+    </resultMap>
+
+    <select id="findAllComments" resultMap="commentModelResultMap">
+      select a.*, u.user_name, u.nick_name, u.avatar, u.email, u.person_sign, u.student_num
+      from `comment` a left join `user` u on a.user_id=u.id order by a.gmt_created desc
+    </select>
+
+    <insert id="postComment">
+        insert into `comment`(user_id, content, parent_id, reply_nick_name)
+        values (#{userId}, #{content}, #{parentId}, #{replyNickName})
+    </insert>
+</mapper>

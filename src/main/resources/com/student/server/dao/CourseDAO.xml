@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.server.dao.CourseDAO">
+    <resultMap id="courseResultMap" type="com.student.server.dataobject.CourseDO">
+        <id column="id" property="id"/>
+        <result column="course_num" property="courseNum"/>
+        <result column="name" property="name"/>
+        <result column="teacher" property="teacher"/>
+        <result column="grade" property="grade" typeHandler="com.student.server.util.JsonTypeHandler"/>
+        <result column="college" property="college" typeHandler="com.student.server.util.JsonTypeHandler"/>
+        <result column="major" property="major" typeHandler="com.student.server.util.JsonTypeHandler"/>
+        <result column="course_time" property="courseTime"/>
+        <result column="course_room" property="courseRoom"/>
+        <result column="credit" property="credit"/>
+        <result column="total_capacity" property="totalCapacity"/>
+        <result column="selected_count" property="selectedCount"/>
+        <result column="remaining" property="remaining"/>
+        <result column="gmt_created" property="gmtCreated"/>
+        <result column="gmt_modified" property="gmtModified"/>
+    </resultMap>
+
+    <insert id="insertCourse" parameterType="com.student.server.dataobject.CourseDO" keyProperty="id" useGeneratedKeys="true">
+        insert into course (course_num, grade, name, teacher, college, major, course_time, course_room,
+                            credit, total_capacity, selected_count, remaining)
+        values (#{courseNum},
+                #{grade,    typeHandler=com.student.server.util.JsonTypeHandler},
+                #{name},
+                #{teacher},
+                #{college,  typeHandler=com.student.server.util.JsonTypeHandler},
+                #{major,    typeHandler=com.student.server.util.JsonTypeHandler},
+                #{courseTime}, #{courseRoom},#{credit}, #{totalCapacity}, #{selectedCount}, #{remaining})
+    </insert>
+
+    <select id="findAllCourse" resultMap="courseResultMap">
+        select id, course_num, grade, name, teacher, college, major, course_time, course_room,
+               credit, total_capacity, selected_count, remaining, gmt_created, gmt_modified
+        from course
+    </select>
+
+    <select id="findPageCourse" parameterType="com.student.server.param.PageParam" resultMap="courseResultMap">
+        select id, course_num, grade, name, teacher, college, major, course_time, course_room,
+               credit, total_capacity, selected_count, remaining, gmt_created, gmt_modified
+        from course
+        where 1=1
+        <if test="param != null and param != ''">
+            <bind name="currentIndex" value="(param.pageNum - 1) * param.pageSize"/>
+         limit #{currentIndex}, #{param.pageSize}
+        </if>
+    </select>
+
+    <select id="countAll" resultType="java.lang.Integer">
+        select count(*)
+        from course
+        <where>
+            <if test="grade != null and grade != ''">
+                AND JSON_CONTAINS(grade, JSON_ARRAY(#{grade}))
+            </if>
+            <if test="college != null and college != ''">
+                AND JSON_CONTAINS(college, JSON_ARRAY(#{college}))
+            </if>
+            <if test="major != null and major != ''">
+                AND JSON_CONTAINS(major, JSON_ARRAY(#{major}))
+            </if>
+        </where>
+    </select>
+
+    <select id="queryByCondition" resultMap="courseResultMap">
+        select id, course_num, grade, name, teacher, college, major, course_time, course_room,
+        credit, total_capacity, selected_count, remaining, gmt_created, gmt_modified
+        from course
+        <where>
+            <if test="grade != null and grade != ''">
+                AND JSON_CONTAINS(grade, JSON_ARRAY(#{grade}))
+            </if>
+            <if test="college != null and college != ''">
+                AND JSON_CONTAINS(college, JSON_ARRAY(#{college}))
+            </if>
+            <if test="major != null and major != ''">
+                AND JSON_CONTAINS(major, JSON_ARRAY(#{major}))
+            </if>
+        </where>
+
+        <if test="param != null and param.pageNum != null and param.pageSize != null">
+            <bind name="currentIndex" value="(param.pageNum - 1) * param.pageSize"/>
+            limit #{currentIndex}, #{param.pageSize}
+        </if>
+    </select>
+
+    <select id="queryByCourseNum" parameterType="java.lang.Long" resultMap="courseResultMap">
+        select id, course_num, grade, name, teacher, college, major, course_time, course_room,
+               credit, total_capacity, selected_count, remaining, gmt_created, gmt_modified
+        from course
+        where course_num=#{courseNum}
+    </select>
+
+    <!-- 选课：人数+1，余量-1，如果减后余量为0则不可选 -->
+    <update id="increasedSelectedCount" parameterType="java.lang.Long">
+        update course
+        set selected_count = selected_count + 1,
+            remaining = remaining - 1
+        where id = #{courseId}
+          and remaining > 0
+    </update>
+
+    <!-- 退课：人数-1，余量+1，如果加后余量>0则可选 -->
+    <update id="decreasedSelectedCount">
+        update course
+        set selected_count = selected_count - 1,
+            remaining = remaining + 1
+        where id = #{courseId}
+    </update>
+
+    <select id="getByCourseId" resultMap="courseResultMap">
+        select id, course_num, grade, name, teacher, college, major, course_time, course_room,
+               credit, total_capacity, selected_count, remaining, gmt_created, gmt_modified
+        from course
+        where id=#{courseId}
+    </select>
+
+</mapper>

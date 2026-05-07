@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>淮师微chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 去掉右侧滚动条 */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        html, body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 字体 */
+        html, body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            height: 100%;
+        }
+
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-color: #333;
+            --input-bg: #f3f6fb;
+            --white: #ffffff;
+        }
+
+        body {
+            min-height: 100vh;
+            padding-top: 80px;
+            background: linear-gradient(45deg, #667eea, #768bba, #5b86e5, #36b1dc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 顶部标题 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 18px 0;
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* 整体布局：左右排列 */
+        .main-layout {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+            padding: 20px;
+            height: calc(100vh - 100px);
+        }
+
+        /* 左侧：评论区 */
+        .comment-section {
+            flex: 1;
+            min-width: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        /* -------- 固定：返回首页 + 全部评论 -------- */
+        .comment-fixed-top {
+            padding: 30px 30px 20px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* 评论列表滚动区域 */
+        .comment-scroll-area {
+            flex: 1;
+            padding: 0 30px 30px;
+            overflow-y: auto;
+        }
+
+        /* 返回按钮 */
+        .back {
+            margin-bottom: 10px;
+        }
+        .back button {
+            padding: 10px 18px;
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .back button:hover {
+            background: var(--primary-hover);
+        }
+
+        /* -------- 发布框：下移到底部 -------- */
+        .publish-section {
+            width: 380px;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-top: auto;
+        }
+
+        /* 发布框样式 */
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            resize: none;
+            margin-bottom: 12px;
+            font-size: 15px;
+            background: var(--input-bg);
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .submit-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        /* 评论样式 */
+        .comment-item {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            background: #fcfcfc;
+        }
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 12px;
+        }
+        .nick {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        .content {
+            line-height: 1.6;
+            margin-left: 52px;
+        }
+        .reply-btn {
+            color: #666;
+            cursor: pointer;
+            margin-left: 52px;
+            font-size: 14px;
+        }
+        .reply-box {
+            margin-top: 10px;
+            margin-left: 52px;
+            display: none;
+        }
+        .reply-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>淮师微chat</h1>
+</div>
+
+<!-- 主布局：左右结构 -->
+<div class="main-layout">
+
+    <!-- 左侧：评论区 -->
+    <div class="comment-section">
+        <!-- 固定头部：返回 + 标题 -->
+        <div class="comment-fixed-top">
+            <div class="back">
+                <button onclick="window.location.href='/index'">返回首页</button>
+            </div>
+            <h3>全部评论([[${totalCount}]])</h3>
+        </div>
+
+        <!-- 评论滚动列表 -->
+        <div class="comment-scroll-area" id="commentList">
+            <div th:each="c : ${comments}" class="comment-item">
+                <div class="comment-header">
+                    <img th:src="${c.author.avatar ?: 'https://picsum.photos/200'}" class="avatar">
+                    <div class="nick" th:text="${c.author.nickName}">昵称</div>
+                </div>
+                <div class="content" th:text="${c.content}">内容</div>
+                <div class="reply-btn">回复</div>
+                <div class="reply-box">
+                    <form method="post" action="/comment/publish">
+                        <input type="text" name="content" placeholder="回复" required>
+                        <input type="hidden" name="parentId" th:value="${c.id}">
+                        <button style="padding:8px 16px;background:#4f46e5;color:white;border:none;border-radius:8px;">发送</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：发布评论（已下移到底部） -->
+    <div class="publish-section">
+        <h3 style="margin-bottom:20px;">发布评论</h3>
+        <form method="post" action="/comment/publish">
+            <textarea name="content" placeholder="分享你的想法..." required></textarea>
+            <input type="hidden" name="parentId" value="0">
+            <button type="submit" class="submit-btn">发布评论</button>
+        </form>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    $(document).on("click", ".reply-btn", function () {
+        $(this).next(".reply-box").toggle();
+    });
+</script>
+
+</body>
+</html>

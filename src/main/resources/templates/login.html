@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>用户登录</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/login.css">
+</head>
+
+<body>
+
+<div class="platform-title">
+    淮北师范大学一站式生活服务平台
+</div>
+
+<div class="login-container">
+    <div class="login-header">
+        <h2>欢迎回来</h2>
+        <p>请输入您的学号和密码继续登录</p>
+    </div>
+
+    <!-- 去掉了 action 和 method，改用 fetch 提交 -->
+    <form id="loginForm" autocomplete="off">
+        <div class="input-group">
+            <label for="studentId">学号</label>
+            <div class="input-wrapper">
+                <i class="fas fa-id-card icon"></i>
+                <input id="studentId" name="studentNum" type="text" placeholder="请输入学号"
+                       required pattern="\d{11}" title="学号必须是11位数字"
+                       autocomplete="off" value="">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="password">密码</label>
+            <div class="input-wrapper">
+                <i class="fas fa-lock icon"></i>
+                <input type="password" id="password" name="password" placeholder="请输入密码"
+                       required autocomplete="new-password" value=""
+                       readonly onfocus="this.removeAttribute('readonly');">
+                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+            </div>
+            <div class="error-tip" id="errorTip"></div>
+        </div>
+
+        <div class="options">
+            <label class="remember-me">
+                <input type="checkbox" id="rememberMe"> 记住我
+            </label>
+            <a href="./forgetPwd" class="forgot-password">忘记密码？</a>
+        </div>
+
+        <button type="submit" class="login-btn" id="loginBtn">立即登录</button>
+    </form>
+
+    <div class="signup-link">
+        还没有账号？<a href="./reg">立即注册</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const f = localStorage.getItem('appFont');
+        if(f) document.body.style.fontFamily = f;
+    });
+
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#password');
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+    const studentIdInput = document.getElementById('studentId');
+    studentIdInput.addEventListener('input', function (e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length > 11) {
+            this.value = this.value.slice(0, 11);
+        }
+    });
+
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            document.querySelectorAll('input').forEach(input => {
+                input.value = '';
+            });
+        }, 10);
+    });
+
+    // ====================== 【核心：fetch 提交登录】 ======================
+    const loginForm = document.getElementById('loginForm');
+    const errorTip = document.getElementById('errorTip');
+
+    loginForm.addEventListener('submit', function(e) {
+        // 阻止默认表单提交（关键！）
+        e.preventDefault();
+
+        const studentNum = document.getElementById('studentId').value;
+        const password = document.getElementById('password').value;
+
+        // 简单验证
+        if (!studentNum || !password) {
+            errorTip.textContent = "学号和密码不能为空";
+            return;
+        }
+
+        // 发送 fetch 请求
+        fetch('/user/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'studentNum=' + encodeURIComponent(studentNum) + '&password=' + encodeURIComponent(password)
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    errorTip.textContent = "";
+                    alert("登录成功！");
+                    // 登录成功，跳转到首页
+                    window.location.href = "/index";
+                } else {
+                    // 显示错误信息
+                    errorTip.textContent = data.msg;
+                }
+            })
+            .catch(err => {
+                errorTip.textContent = "网络异常，请稍后重试";
+                console.error(err);
+            });
+    });
+</script>
+</body>
+</html>

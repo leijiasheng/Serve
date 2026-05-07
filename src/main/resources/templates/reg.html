@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/register.css">
+</head>
+<body>
+
+<div class="platform-title">
+    淮北师范大学一站式生活服务平台
+</div>
+
+<div class="card">
+    <h1>注册</h1>
+
+    <!-- 普通表单提交 → 后端处理后直接跳转页面 -->
+    <form action="/user/register" method="post">
+        <div class="field">
+            <label for="userName">用户名</label>
+            <div class="input-wrapper">
+                <i class="fas fa-user left-icon"></i>
+                <input id="userName" name="userName" type="text" placeholder="请输入真实姓名" required autocomplete="off" value="">
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="studentId">学号</label>
+            <div class="input-wrapper">
+                <i class="fas fa-id-card left-icon"></i>
+                <input id="studentId" name="studentNum" type="text" placeholder="请输入学号" required pattern="\d{11}" title="学号必须是11位数字" autocomplete="off" value="">
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="email">邮箱</label>
+            <div class="input-wrapper">
+                <i class="fas fa-envelope left-icon"></i>
+                <input id="email" name="email" type="email" placeholder="请输入邮箱" required autocomplete="off" value="">
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="password">密码</label>
+            <div class="input-wrapper">
+                <i class="fas fa-lock left-icon"></i>
+                <input id="password" name="password" type="password" placeholder="请输入密码" required autocomplete="new-password" value="">
+                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+            </div>
+        </div>
+
+        <button type="submit">立即注册</button>
+    </form>
+
+    <div class="link-row">
+        已有账号？<a href="./login">去登录</a>
+    </div>
+</div>
+
+<script>
+
+        // 全局加载保存的字体
+        document.addEventListener('DOMContentLoaded', function(){
+            const f = localStorage.getItem('appFont');
+            if(f) document.body.style.fontFamily = f;
+        })
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#password');
+
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+    const studentIdInput = document.getElementById('studentId');
+    studentIdInput.addEventListener('input', function (e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length > 11) {
+            this.value = this.value.slice(0, 11);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('input').forEach(input => {
+            input.value = '';
+            input.autocomplete = 'off';
+        });
+    });
+</script>
+
+</body>
+</html>

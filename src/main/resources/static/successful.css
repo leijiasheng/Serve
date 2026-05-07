@@ -1,0 +1,72 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 全局字体统一写在这里 */
+html, body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(45deg, #667eea, #764ba2, #5b86e5, #36d1dc);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.success-card {
+    background: #fff;
+    max-width: 420px;
+    width: 100%;
+    padding: 50px 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.icon-wrap {
+    font-size: 60px;
+    color: #10b981;
+    margin-bottom: 24px;
+}
+
+.success-card h1 {
+    font-size: 26px;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.success-card p {
+    color: #666;
+    font-size: 15px;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.to-login {
+    display: inline-block;
+    padding: 14px 30px;
+    background-color: #4f46e5;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.to-login:hover {
+    background-color: #4338ca;
+}

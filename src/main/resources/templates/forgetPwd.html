@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>找回密码 - 淮北师范大学一站式生活服务平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-color: #333;
+            --text-light: #666;
+            --input-bg: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        body {
+            background: linear-gradient(45deg, #667eea, #764ba2, #5b86e5, #36d1dc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .platform-title {
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 20px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background: var(--white);
+            width: 100%;
+            max-width: 480px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+
+        .card h2 {
+            text-align: center;
+            font-size: 26px;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .desc {
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        .field {
+            margin-bottom: 22px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 16px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            height: 46px;
+            padding-left: 46px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #f9fafb;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--primary-color);
+            background: #fff;
+        }
+
+        .reset-btn {
+            width: 100%;
+            height: 48px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .reset-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .msg {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 10px 14px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .back {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+        }
+
+        .back a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="platform-title">
+    淮北师范大学一站式生活服务平台
+</div>
+
+<div class="card">
+    <h2>找回密码</h2>
+    <p class="desc">请输入学号与注册邮箱，重置为初始密码 123456</p>
+
+    <div class="msg" th:text="${msg}" th:if="${msg != null}"></div>
+
+    <form action="/user/forgot" method="post">
+        <div class="field">
+            <label>学号</label>
+            <div class="input-wrapper">
+                <i class="fas fa-id-card"></i>
+                <input name="studentNum" type="text" placeholder="请输入11位学号" required>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>注册邮箱</label>
+            <div class="input-wrapper">
+                <i class="fas fa-envelope"></i>
+                <input name="email" type="email" placeholder="请输入注册邮箱" required>
+            </div>
+        </div>
+
+        <button type="submit" class="reset-btn">重置密码为123456</button>
+    </form>
+
+    <div class="back">
+        <a href="/login">返回登录</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const f = localStorage.getItem('appFont');
+        if(f) document.body.style.fontFamily = f;
+    })
+</script>
+
+</body>
+</html>

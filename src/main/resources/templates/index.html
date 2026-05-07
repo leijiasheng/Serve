@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - 淮北师范大学一站式生活服务平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全局字体统一写在这里 */
+        html, body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-color: #333;
+            --text-light: #666;
+            --input-bg: #f3f4f6;
+            --white: #ffffff;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #5b86e5, #36d1dc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .platform-title {
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 20px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+        }
+
+        .home-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .home-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .welcome {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .welcome h2 {
+            font-size: 28px;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        .menu-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .menu-item {
+            background: var(--input-bg);
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-item:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .menu-item i {
+            font-size: 30px;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+        }
+
+        .menu-item:hover i {
+            color: white;
+        }
+
+        .menu-item h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            margin-top: 30px;
+            padding: 12px 24px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        @media (max-width: 480px) {
+            .platform-title {
+                font-size: 18px;
+            }
+            .home-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="platform-title">
+    淮北师范大学一站式生活服务平台
+</div>
+
+<div class="home-card">
+    <div class="welcome">
+        <h2>欢迎</h2>
+        <p>这里是系统首页，您可以查看用户信息或使用平台功能</p>
+    </div>
+
+    <div class="menu-box">
+        <div class="menu-item" onclick="window.location.href='/person'">
+            <i class="fas fa-user-circle"></i>
+            <h3>个人中心</h3>
+        </div>
+        <div class="menu-item" onclick="window.location.href='/userList'">
+            <i class="fas fa-users"></i>
+            <h3>用户管理</h3>
+        </div>
+        <div class="menu-item" onclick="window.location.href='/setting'">
+            <i class="fas fa-cog"></i>
+            <h3>系统设置</h3>
+        </div>
+
+        <!-- 新增 3个 -->
+        <div class="menu-item">
+            <i class="fas fa-shopping-basket"></i>
+            <h3>校园采购</h3>
+        </div>
+        <div class="menu-item">
+            <i class="fas fa-box-open"></i>
+            <h3>快递代拿</h3>
+        </div>
+        <div class="menu-item" onclick="window.location.href='/toComment'">
+            <i class="fas fa-comments"></i>
+            <h3>淮师微chat</h3>
+        </div>
+
+        <!-- 👇 再新增 3个 选课中心 请假申请 校园交易 -->
+        <div class="menu-item">
+            <i class="fas fa-book-reader"></i>
+            <h3>选课中心</h3>
+        </div>
+        <div class="menu-item">
+            <i class="fas fa-file-signature"></i>
+            <h3>请假申请</h3>
+        </div>
+        <div class="menu-item">
+            <i class="fas fa-exchange-alt"></i>
+            <h3>校园交易</h3>
+        </div>
+    </div>
+
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const f = localStorage.getItem('appFont');
+        if(f) document.body.style.fontFamily = f;
+    })
+</script>
+
+</body>
+
+</html>

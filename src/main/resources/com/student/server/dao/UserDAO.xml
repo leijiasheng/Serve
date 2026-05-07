@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.server.dao.UserDAO">
+
+<resultMap id="userResultMap" type="com.student.server.dataobject.UserDO">
+    <id column="id" property="id"/>
+    <result column="user_name" property="userName"/>
+    <result column="nick_name" property="nickName"/>
+    <result column="student_num" property="studentNum"/>
+    <result column="password" property="password"/>
+    <result column="email" property="email"/>
+    <result column="person_sign" property="personSign"/>
+    <result column="avatar" property="avatar"/>
+    <result column="gmt_created" property="gmtCreated"/>
+    <result column="gmt_modified" property="gmtModified"/>
+</resultMap>
+
+    <select id="findByStudentNum" resultMap="userResultMap" parameterType="java.lang.String">
+        select id, user_name, nick_name, student_num, password, email, person_sign, avatar,
+               gmt_created, gmt_modified
+        from `user` where student_num=#{studentNum}
+    </select>
+
+    <insert id="insert" parameterType="com.student.server.dataobject.UserDO" useGeneratedKeys="true" keyProperty="id">
+        insert into `user`(user_name, nick_name, student_num, password, email, person_sign, avatar)
+        values (#{userName}, #{nickName}, #{studentNum}, #{password}, #{email}, #{personSign}, #{avatar})
+    </insert>
+
+    <delete id="deleteByStudentNum" parameterType="java.lang.String">
+        delete from `user` where student_num=#{studentNum}
+    </delete>
+
+    <update id="updateByStudentNum" parameterType="com.student.server.dataobject.UserDO">
+        update `user`
+        <set>
+            <if test="nickName != null and nickName != ''">
+                nick_name=#{nickName},
+            </if>
+            <if test="email != null and email != ''">
+                email=#{email},
+            </if>
+            <if test="personSign != null and personSign != ''">
+                person_sign=#{personSign},
+            </if>
+            <if test="avatar != null and avatar != ''">
+                avatar=#{avatar},
+            </if>
+            gmt_modified=now()
+        </set>
+        where student_num=#{studentNum}
+    </update>
+
+    <update id="updatePwd">
+        update `user`
+        <set>
+            <if test="password != null and password != ''">
+                password=#{password},
+            </if>
+            gmt_modified=now()
+        </set>
+        where student_num=#{studentNum}
+    </update>
+
+    <select id="findAll" resultMap="userResultMap" parameterType="com.student.server.param.PageParam">
+        select id, user_name, student_num, email
+        from `user`
+        <bind name="currentIndex" value="(pageNum - 1) * pageSize"/>
+        limit #{currentIndex}, #{pageSize}
+    </select>
+
+    <select id="countAll" resultType="java.lang.Integer">
+        select count(*)
+        from `user`
+    </select>
+
+    <select id="findByKey" resultMap="userResultMap">
+        select id, student_num, user_name, email
+        from `user`
+        where 1=1
+        <if test="keyWord != null and keyWord != ''">
+            and (student_num like concat('%', #{keyWord}, '%')
+                or user_name like concat('%', #{keyWord}, '%'))
+        </if>
+        <if test="param != null and param != ''">
+            <bind name="currentIndex" value="(param.pageNum - 1) * param.pageSize"/>
+            limit #{currentIndex}, #{param.pageSize}
+        </if>
+    </select>
+
+    <select id="countByKeyWord" parameterType="java.lang.String">
+        select count(*)
+        from `user`
+        where 1=1
+        <if test="keyWord != null and keyWord != ''">
+            and (student_num like concat('%', #{keyWord}, '%')
+                or user_name like concat('%', #{keyWord}, '%'))
+        </if>
+    </select>
+
+    <select id="selectByUserId" parameterType="java.lang.Long" resultMap="userResultMap">
+        select id, student_num, user_name, nick_name, email
+        from `user`
+        where id=#{userId}
+    </select>
+</mapper>
