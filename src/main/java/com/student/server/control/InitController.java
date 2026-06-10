@@ -9,14 +9,17 @@ import com.student.server.model.Comment;
 import com.student.server.model.Result;
 import com.student.server.model.User;
 import com.student.server.service.CommentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,18 +34,20 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
+@RequiredArgsConstructor
 @Slf4j
+@Tag(name = "初始化与工具", description = "数据初始化、查询工具等接口")
 public class InitController {
 
-    @Autowired
-    private UserDAO userDAO;
-    @Autowired
-    private CommentDAO commentDAO;
-    @Autowired
-    private CommentService commentService;
+    private final UserDAO userDAO;
+    private final CommentDAO commentDAO;
+    private final CommentService commentService;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @GetMapping("/init")
     @ResponseBody
+    @Operation(summary = "初始化用户数据", description = "从 JSON 文件批量导入用户数据（测试用）")
     public Result<List<UserDO>> initData() {
 
         Result<List<UserDO>> result = new Result<>();
@@ -51,7 +56,10 @@ public class InitController {
         InputStream in = UserController.class.getClassLoader().getResourceAsStream("data/userData.json");
 
         try {
-            assert in != null;
+            if (in == null) {
+                result.setMessage("用户数据文件未找到");
+                return result;
+            }
 
             String content = IOUtils.toString(in, StandardCharsets.UTF_8);
 
@@ -65,12 +73,8 @@ public class InitController {
                 userDO.setNickName(user.getNickName());
                 userDO.setEmail(user.getEmail());
                 userDO.setStudentNum(user.getStudentNum());
-                userDO.setPassword(user.getPassword());
 
-                String saltPwd = user.getPassword() + "ljs_zwy";
-                String md5Pwd = DigestUtils.md5DigestAsHex(saltPwd.getBytes()).toUpperCase();
-
-                userDO.setPassword(md5Pwd);
+                userDO.setPassword(passwordEncoder.encode(user.getPassword()));
                 userDOS.add(userDO);
             });
 
@@ -84,7 +88,7 @@ public class InitController {
             result.setSuccess(true);
             return result;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("初始化用户数据失败", e);
         }
 
         return result;
@@ -92,7 +96,8 @@ public class InitController {
 
     @GetMapping("/findByStudentNum")
     @ResponseBody
-    public Result<UserDO> findByStudentNum(@RequestParam("studentNum") String studentNum) {
+    @Operation(summary = "根据学号查询用户", description = "通过学号查询用户信息")
+    public Result<UserDO> findByStudentNum(@Parameter(description = "学号") @RequestParam("studentNum") String studentNum) {
         Result<UserDO> result = new Result<>();
         UserDO userDO = userDAO.findByStudentNum(studentNum);
 
@@ -103,12 +108,14 @@ public class InitController {
 
     @GetMapping("/find")
     @ResponseBody
+    @Operation(summary = "查询所有评论", description = "获取全部评论数据（原始数据）")
     public List<Comment> findAllComments() {
         return commentDAO.findAllComments();
     }
 
     @GetMapping("/comments")
     @ResponseBody
+    @Operation(summary = "获取评论列表（带分页）")
     public Result<List<Comment>> commentList() {
         Result<List<Comment>> result = commentService.findAllComments();
         return result;
@@ -116,8 +123,9 @@ public class InitController {
 
     @GetMapping("/getCookies")
     @ResponseBody
-    public Map index(HttpServletRequest request) {
-        Map returnData = new HashMap();
+    @Operation(summary = "获取 Cookies", description = "查看当前请求的 Cookie 信息")
+    public Map<String, Object> index(HttpServletRequest request) {
+        Map<String, Object> returnData = new HashMap<>();
         returnData.put("result", "this is song list");
 
         Cookie[] cookies = request.getCookies();

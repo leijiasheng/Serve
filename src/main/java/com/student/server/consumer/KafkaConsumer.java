@@ -11,35 +11,33 @@ import com.student.server.kafkaTopics.Topics;
 import com.student.server.service.SnappedService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class KafkaConsumer {
 
-    @Autowired
-    private UserDAO userDAO;
+    private final UserDAO userDAO;
 
-    @Autowired
-    private ProductDAO productDAO;
+    private final ProductDAO productDAO;
 
-    @Autowired
-    private EmailClient emailClient;
+    private final EmailClient emailClient;
 
-    @Autowired
-    private SnappedService snappedService;
+    private final SnappedService snappedService;
 
     /**
-     * 监听抢购成功消息，用于写入刷新数据库
-     * @param record
+     * 监听抢购成功消息，异步写入数据库
      */
-    @KafkaListener(topics = Topics.KAFKA_SNAP_TOPIC)
-    public void listenSnap(ConsumerRecord<String, String> record) {
+    @KafkaListener(topics = Topics.KAFKA_SNAP_TOPIC, concurrency = "3")
+    public void listenSnap(ConsumerRecord<String, String> record, Acknowledgment ack) {
+
         try {
-            // 直接获取消息
             String userIdStr = record.key();
             String productJsonStr = record.value();
             ProductDO productDO = JSON.parseObject(productJsonStr, ProductDO.class);
@@ -51,54 +49,79 @@ public class KafkaConsumer {
             snappedService.doSnapBusiness(userId, productId, price);
 
             log.info("kafka消费成功，用户ID：{}, 商品：{}", userId, productDO);
+            ack.acknowledge();
+        } catch (DuplicateKeyException e) {
+            log.warn("【重复消费，已跳过】用户{}已抢购该商品，无需重复处理", record.key());
+            ack.acknowledge();
         } catch (Exception e) {
-            log.error("kafka消费失败，异常信息：", e);
+            log.error("kafka消费失败", e);
+            throw e;
         }
     }
 
     /**
      * 监听订单消息，用于异步发送订单到邮箱
-     * @param record
      */
-    @KafkaListener(topics = Topics.KAFKA_ORDER_TOPIC)
-    public void listenOrder(ConsumerRecord<?, ?> record) {
-       try {
-           String userIdStr = String.valueOf(record.key());
-           String orderJsonStr = String.valueOf(record.value());
+    @KafkaListener(topics = Topics.KAFKA_ORDER_TOPIC, concurrency = "2")
+    public void listenOrder(ConsumerRecord<?, ?> record, Acknowledgment ack) {
 
-           UserDO userDO = userDAO.selectByUserId(Long.parseLong(userIdStr));
-           OrderDO orderDO = JSON.parseObject(orderJsonStr, OrderDO.class);
+        try {
+            String userIdStr = String.valueOf(record.key());
+            String orderJsonStr = String.valueOf(record.value());
 
-           String productId = orderDO.getProductId();
-           ProductDO productDO = productDAO.selectById(Long.parseLong(productId));
+            UserDO userDO = userDAO.selectByUserId(Long.parseLong(userIdStr));
+            OrderDO orderDO = JSON.parseObject(orderJsonStr, OrderDO.class);
 
-           orderDO.setProduct(productDO.toModel());
-           orderDO.setUser(userDO.toModel());
+            String productId = orderDO.getProductId();
+            ProductDO productDO = productDAO.selectById(Long.parseLong(productId));
 
-           //根据userId查询user在查询email
-           String userEmail = userDO.getEmail();
+            orderDO.setProduct(productDO.toModel());
+            orderDO.setUser(userDO.toModel());
 
-           emailClient.sendOrderEmail(userEmail, JSON.toJSONString(orderDO));
+            String userEmail = userDO.getEmail();
+            emailClient.sendOrderEmail(userEmail, JSON.toJSONString(orderDO));
 
-           log.info("订单邮件已发送至：{}，用户昵称：{}", userEmail, userDO.getNickName());
-       } catch (Exception e) {
-           log.error("订单邮件发送失败", e);
-       }
+            log.info("订单邮件已发送至：{}，用户昵称：{}", userEmail, userDO.getNickName());
+            ack.acknowledge();
+        } catch (Exception e) {
+            log.error("listenOrder : 发送订单邮件失败", e);
+            ack.acknowledge();
+        }
+
     }
 
-    @KafkaListener(topics = Topics.KAFKA_CODE_TOPIC)
-    public void listenVerifyCode(ConsumerRecord<?, ?> record) {
+    /**
+     * 异步监听并发送验证码
+     */
+    @KafkaListener(topics = Topics.KAFKA_CODE_TOPIC, concurrency = "2")
+    public void listenVerifyCode(ConsumerRecord<?, ?> record, Acknowledgment ack) {
+
         try {
             String emailStr = String.valueOf(record.key());
             String codeNumStr = String.valueOf(record.value());
-
             emailClient.sendVerifyCodeEmail(emailStr, codeNumStr);
-            log.info("验证码邮件已发送至：{}", emailStr);
+            log.info("忘记密码验证码邮件已发送至：{}", emailStr);
         } catch (Exception e) {
-            log.error("验证码邮件发送失败", e);
+            log.error("listenVerifyCode : 发送验证码失败", e);
+        } finally {
+            ack.acknowledge();
         }
     }
 
-
-
+    /**
+     * 监听并异步发送注册验证码
+     */
+    @KafkaListener(topics = Topics.KAFKA_REG_CODE_TOPIC, concurrency = "2")
+    public void listenRegCode(ConsumerRecord<?, ?> record, Acknowledgment ack) {
+        try {
+            String emailStr = String.valueOf(record.key());
+            String codeNumStr = String.valueOf(record.value());
+            emailClient.sendRegVerifyCode(emailStr, codeNumStr);
+            log.info("注册验证码已发送至：{}", emailStr);
+        } catch (Exception e) {
+            log.error("listenRegCode : 发送验证码失败", e);
+        } finally {
+            ack.acknowledge();
+        }
+    }
 }

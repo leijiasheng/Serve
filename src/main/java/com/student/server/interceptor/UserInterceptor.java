@@ -1,46 +1,60 @@
 package com.student.server.interceptor;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.student.server.model.Result;
 import com.student.server.model.UserInfo;
+import com.student.server.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
+@RequiredArgsConstructor
 @Slf4j
+@Component
 public class UserInterceptor implements HandlerInterceptor {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    private final JwtUtil jwtUtil;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // 关键：不自动创建
-        HttpSession session = request.getSession(false);
 
-        UserInfo user = null;
-        if (session != null) {
-            user = (UserInfo) session.getAttribute("user");
-        }
+        //允许跨域请求
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+                return true;
+            }
 
-        if (user == null) {
-            log.error("未登录");
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.error("未提供有效的认证令牌");
             response.setContentType("application/json;charset=utf-8");
             Result result = new Result();
             result.setSuccess(false);
             result.setMessage("未登录或登录已过期");
-            new ObjectMapper().writeValue(response.getWriter(), result);
+            response.setStatus(401);
+            OBJECT_MAPPER.writeValue(response.getWriter(), result);
             return false;
         }
+
+        //把 Bearer 这 7 个字符去掉，拿到纯token
+        String token = authHeader.substring(7);
+        if (!jwtUtil.validateToken(token)) {
+            log.error("令牌无效或已过期");
+            response.setContentType("application/json;charset=utf-8");
+            Result result = new Result();
+            result.setSuccess(false);
+            result.setMessage("未登录或登录已过期");
+            response.setStatus(401);
+            OBJECT_MAPPER.writeValue(response.getWriter(), result);
+            return false;
+        }
+
+        UserInfo userInfo = jwtUtil.getUserInfoFromToken(token);
+        request.setAttribute("currentUser", userInfo);
         return true;
-    }
-
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-    }
-
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
     }
 }

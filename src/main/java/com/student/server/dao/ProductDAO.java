@@ -4,6 +4,8 @@ import com.student.server.dataobject.ProductDO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface ProductDAO {
 
@@ -12,4 +14,6 @@ public interface ProductDAO {
     ProductDO selectById(long id);
 
     int reduceStock(@Param("id") long id,@Param("count") int count);
+
+    List<ProductDO> getAll();
 }

@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: Server
+
+  datasource:
+    url: jdbc:mysql://rm-bp1w25a2x5v56cxk14o.mysql.rds.aliyuncs.com:3306/serverdb?serverTimezone=GMT%2B8
+    username: jiasheng
+    password: "!@#060321Ljs"
+    druid:
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        login-username: admin
+        login-password: admin
+        allow:
+        deny:
+
+  data:
+    redis:
+      host: 47.99.86.70
+      port: 6379
+      password: leijiashengredis
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+
+  kafka:
+    bootstrap-servers: 47.99.86.70:9093
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 10
+      batch-size: 16384
+      buffer-memory: 33554432
+      compression-type: snappy
+      properties:
+        enable.idempotence: true
+        linger.ms: 5
+    consumer:
+      group-id: test-consumer-group
+      enable-auto-commit: false
+      auto-offset-reset: latest
+      max-poll-records: 50
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.interval.ms: 300000
+    listener:
+      ack-mode: manual_immediate
+
+mybatis:
+  mapper-locations: classpath:com/student/server/dao/*.xml
+
+send:
+  message:
+    email: ljs060321@qq.com
+    code: bxtumjelwedididg
+
+jwt:
+  secret: leijiasheng-jwt-secret-key-2026-server-app-256bit-abcdef123456
+  expiration: 86400000
+
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  packages-to-scan: com.student.server
+
+kind: Application

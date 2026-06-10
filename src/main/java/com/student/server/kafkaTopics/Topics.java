@@ -8,4 +8,5 @@ public class Topics {
 
     public static final String KAFKA_CODE_TOPIC = "verifyCode";
 
+    public static final String KAFKA_REG_CODE_TOPIC = "regCode";
 }

@@ -1,24 +1,29 @@
 package com.student.server.control;
 
+import com.student.server.annotation.RateLimit;
 import com.student.server.model.Result;
 import com.student.server.model.UserCourse;
 import com.student.server.model.UserInfo;
 import com.student.server.service.UserCourseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/userCourse")
+@RequiredArgsConstructor
 @Slf4j
+@Tag(name = "选课管理", description = "学生选课、退课和查询选课信息接口")
 public class UserCourseController {
 
-    @Autowired
-    private UserCourseService userCourseService;
+    private final UserCourseService userCourseService;
 
 
     /**
@@ -28,10 +33,10 @@ public class UserCourseController {
      * @return
      */
     @PostMapping("/insert")
-    public Result<UserCourse> insertUserCourse(@RequestParam("courseId") long courseId,
+    @Operation(summary = "选课", description = "根据课程ID进行选课")
+    public Result<UserCourse> insertUserCourse(@Parameter(description = "课程ID") @RequestParam("courseId") long courseId,
                                                HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        UserInfo user =(UserInfo) session.getAttribute("user");
+        UserInfo user =(UserInfo) request.getAttribute("currentUser");
         long userId = user.getId();
         Result<UserCourse> result = userCourseService.insertUserCourse(userId, courseId);
         if (result.isSuccess()) {
@@ -48,9 +53,9 @@ public class UserCourseController {
      * @return
      */
     @GetMapping("/get")
+    @Operation(summary = "查询选课信息", description = "根据当前登录用户查询选课列表")
     public Result<List<UserCourse>> selectUserCourseByUseId(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        UserInfo user =(UserInfo) session.getAttribute("user");
+        UserInfo user =(UserInfo) request.getAttribute("currentUser");
         long userId= user.getId();
         Result<List<UserCourse>> result = userCourseService.selectUserCourseByUserId(userId);
         if (result.isSuccess()) {
@@ -68,10 +73,10 @@ public class UserCourseController {
      * @return
      */
     @PostMapping("/delete")
-    public Result<UserCourse> deleteUserCourse(@RequestParam("courseId") long courseId,
+    @Operation(summary = "退课", description = "根据课程ID退课")
+    public Result<UserCourse> deleteUserCourse(@Parameter(description = "课程ID") @RequestParam("courseId") long courseId,
                                                HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        UserInfo user =(UserInfo) session.getAttribute("user");
+        UserInfo user =(UserInfo) request.getAttribute("currentUser");
 
         long userId = user.getId();
         Result<UserCourse> result = userCourseService.deleteUserCourse(userId, courseId);

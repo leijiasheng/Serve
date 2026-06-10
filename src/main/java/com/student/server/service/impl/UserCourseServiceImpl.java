@@ -8,7 +8,7 @@ import com.student.server.dataobject.UserCourseDO;
 import com.student.server.model.*;
 import com.student.server.redisKeys.RedisConstant;
 import com.student.server.service.UserCourseService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -18,16 +18,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserCourseServiceImpl implements UserCourseService {
 
-    @Autowired
-    private UserCourseDAO userCourseDAO;
+    private final UserCourseDAO userCourseDAO;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
+    private final RedisTemplate redisTemplate;
 
-    @Autowired
-    private CourseDAO courseDAO;
+    private final CourseDAO courseDAO;
 
     /**
      * 选课，并更新数据库和缓存redis

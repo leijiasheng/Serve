@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.student.server.dao.SnappedUserDAO">
-    <resultMap id="snappedUserResultMap" type="com.student.server.dao.SnappedUserDAO">
+    <resultMap id="snappedUserResultMap" type="com.student.server.dataobject.SnappedUserDO">
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
         <result column="product_id" property="productId"/>
@@ -13,4 +13,8 @@
         insert into snappedUser (user_id, product_id)
         values (#{userId}, #{productId})
     </insert>
+
+    <select id="countByUserAndProduct" resultType="int">
+        select count(1) from snappedUser where user_id = #{userId} and product_id = #{productId}
+    </select>
 </mapper>

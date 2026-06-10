@@ -6,9 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import java.util.Properties;
 
 @Slf4j
@@ -22,7 +22,7 @@ public class EmailClient {
     private String messageSenderCode;
 
     /**
-     * 发送订单邮箱
+     * 发送订单到邮箱
      * @param messageAcceptor
      * @param content
      */
@@ -42,7 +42,7 @@ public class EmailClient {
             //鉴权信息
             props.setProperty("mail.smtp.auth", "true");
             //建立邮件会话
-            Session session = Session.getDefaultInstance(props, new Authenticator() {
+            Session session = Session.getInstance(props, new Authenticator() {
                 //身份认证
                 protected PasswordAuthentication getPasswordAuthentication() {
                     //1.账户 授权码
@@ -66,12 +66,12 @@ public class EmailClient {
             Transport.send(message);
            log.info("订单邮件发送成功");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("订单邮件发送失败", e);
         }
     }
 
     /**
-     * 发送验证码邮箱
+     * 发送验证码到邮箱
      * @param to
      * @param code
      */
@@ -86,7 +86,7 @@ public class EmailClient {
             props.setProperty("mail.smtp.socketFactory.port", "465");
             props.setProperty("mail.smtp.auth", "true");
 
-            Session session = Session.getDefaultInstance(props, new Authenticator() {
+            Session session = Session.getInstance(props, new Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
                     return new PasswordAuthentication(messageSender, messageSenderCode);
                 }
@@ -102,9 +102,99 @@ public class EmailClient {
             Transport.send(message);
             log.info("验证码邮件发送成功");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("验证码邮件发送失败", e);
             throw new RuntimeException("验证码邮件发送失败");
         }
+    }
+
+    /**
+     * 发送注册验证码到邮箱
+     * @param to
+     * @param code
+     */
+    public void sendRegVerifyCode(String to, String code) {
+        try {
+            final String SSL_FACTORY = "javax.net.ssl.SSLSocketFactory";
+            Properties props = new Properties();
+
+            props.setProperty("mail.smtp.host", "smtp.qq.com");
+            props.setProperty("mail.smtp.socketFactory.class", SSL_FACTORY);
+            props.setProperty("mail.smtp.port", "465");
+            props.setProperty("mail.smtp.socketFactory.port", "465");
+            props.setProperty("mail.smtp.auth", "true");
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(messageSender, messageSenderCode);
+                }
+            });
+
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(messageSender));
+            message.setRecipients(Message.RecipientType.TO, to);
+            message.setSubject("用户注册 - 邮箱验证码");
+            // 👇 自动发送 HTML 格式验证码
+            message.setContent(buildRegCodeHtml(code), "text/html;charset=UTF-8");
+            message.saveChanges();
+            Transport.send(message);
+            log.info("验证码邮件发送成功");
+        } catch (Exception e) {
+            log.error("注册验证码邮件发送失败", e);
+            throw new RuntimeException("验证码邮件发送失败");
+        }
+    }
+
+    /**
+     * 发送用户反馈/建议到开发者邮箱
+     * @param suggestion 反馈内容
+     * @param contact 联系方式（学号或邮箱）
+     */
+    public void sendSuggestionEmail(String suggestion, String contact) {
+        try {
+            final String SSL_FACTORY = "javax.net.ssl.SSLSocketFactory";
+            Properties props = new Properties();
+            props.setProperty("mail.smtp.host", "smtp.qq.com");
+            props.setProperty("mail.smtp.socketFactory.class", SSL_FACTORY);
+            props.setProperty("mail.smtp.port", "465");
+            props.setProperty("mail.smtp.socketFactory.port", "465");
+            props.setProperty("mail.smtp.auth", "true");
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(messageSender, messageSenderCode);
+                }
+            });
+
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(messageSender));
+            // 如果用户填了邮箱，设置 Reply-To 方便直接回复
+            if (contact != null && contact.contains("@")) {
+                message.setReplyTo(new InternetAddress[]{new InternetAddress(contact)});
+            }
+            // 发送给开发者自己
+            message.setRecipients(Message.RecipientType.TO, messageSender);
+            message.setSubject("用户反馈建议");
+            message.setContent(buildSuggestionHtml(suggestion, contact), "text/html;charset=UTF-8");
+            message.saveChanges();
+            Transport.send(message);
+            log.info("用户反馈邮件发送成功");
+        } catch (Exception e) {
+            log.error("用户反馈邮件发送失败", e);
+            throw new RuntimeException("反馈提交失败，请稍后重试");
+        }
+    }
+
+    private String buildSuggestionHtml(String suggestion, String contact) {
+        return "<div style='max-width:600px;margin:20px auto;padding:25px;border-radius:12px;border:1px solid #f0f0f0;font-family:微软雅黑;'>"
+                + "<h3 style='color:#333;'>用户反馈建议</h3>"
+                + "<div style='background:#f7f8fa;padding:15px;border-radius:8px;margin:15px 0;'>"
+                + "<p style='font-size:14px;color:#333;line-height:1.8;white-space:pre-wrap;'>" + suggestion + "</p>"
+                + "</div>"
+                + "<p style='font-size:13px;color:#999;'>联系方式：" + (contact.isEmpty() ? "未填写" : contact) + "</p>"
+                + "<div style='margin-top:20px;text-align:center;color:#999;font-size:12px;'>"
+                + "感谢您使用一站式生活服务平台"
+                + "</div>"
+                + "</div>";
     }
 
     /**
@@ -157,4 +247,20 @@ public class EmailClient {
                 + "</div>";
     }
 
+    /**
+     * 构建注册验证码页面
+     * @param code
+     * @return
+     */
+    private String buildRegCodeHtml(String code) {
+        return "<div style='max-width:500px;margin:20px auto;padding:25px;border-radius:12px;border:1px solid #f0f0f0;font-family:微软雅黑;'>"
+                + "<h3 style='color:#333;margin-top:0;'>淮北师范大学一站式生活服务平台</h3>"
+                + "<p style='font-size:15px;'>你的注册账户验证码为：</p>"
+                + "<div style='background:#f7f8fa;padding:15px;border-radius:8px;text-align:center;margin:20px 0;'>"
+                + "<h1 style='color:#0066cc;margin:0;letter-spacing:3px;'>" + code + "</h1>"
+                + "</div>"
+                + "<p style='font-size:14px;color:#666;'>验证码 5 分钟内有效，请勿泄露给他人</p>"
+                + "<p style='font-size:12px;color:#999;'>如非本人操作，请忽略本邮件</p>"
+                + "</div>";
+    }
 }

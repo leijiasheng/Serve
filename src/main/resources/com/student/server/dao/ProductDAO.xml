@@ -30,7 +30,12 @@
         <if test="count > 0">
             stock = stock - #{count}
         </if>
-        where id = #{id,jdbcType=BIGINT}
+        where id = #{id,jdbcType=BIGINT} and stock > 0
     </update>
+
+    <select id="getAll" resultMap="BaseResultMap">
+        select id,price,name,stock,gmt_created, gmt_modified
+        from product
+    </select>
 
 </mapper>

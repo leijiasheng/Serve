@@ -14,7 +14,7 @@ import com.student.server.param.PageParam;
 import com.student.server.service.CourseService;
 import net.sf.jsqlparser.expression.StringValue;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -26,13 +26,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CourseServiceImpl implements CourseService {
 
-    @Autowired
-    private CourseDAO courseDAO;
+    private final CourseDAO courseDAO;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
+    private final RedisTemplate redisTemplate;
 
     /**
      *全量查询

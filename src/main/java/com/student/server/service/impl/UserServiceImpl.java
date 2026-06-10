@@ -1,6 +1,7 @@
 package com.student.server.service.impl;
 
 import com.alibaba.fastjson2.JSON;
+import com.student.server.cache.UserCache;
 import com.student.server.dao.UserDAO;
 import com.student.server.dataobject.UserDO;
 import com.student.server.email.EmailClient;
@@ -10,17 +11,18 @@ import com.student.server.model.User;
 import com.student.server.param.PageParam;
 import com.student.server.redisKeys.RedisConstant;
 import com.student.server.service.UserService;
+import com.student.server.websocket.UserWebSocketHandler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.DigestUtils;
 
 import java.util.List;
 import java.util.Random;
@@ -28,20 +30,29 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserDAO userDAO;
+    private final UserDAO userDAO;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
+    private final UserCache userCache;
 
-    @Autowired
-    private EmailClient emailClient;
+    private final UserWebSocketHandler userWebSocketHandler;
 
-    @Autowired
-    private KafkaTemplate kafkaTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    private String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
+    private boolean checkPassword(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
 
     /**
      * 用户注册
@@ -52,7 +63,7 @@ public class UserServiceImpl implements UserService {
      * @return
      */
     @Override
-    public Result<User> register(String userName, String password, String email, String studentNum) {
+    public Result<User> register(String userName, String password, String email, String studentNum, String code) {
         Result<User> result = new Result<>();
         result.setSuccess(true);
 
@@ -63,6 +74,49 @@ public class UserServiceImpl implements UserService {
             return result;
         }
 
+        String regCodeKey = RedisConstant.EMAIL_REGISTER_CODE_PREFIX + studentNum;
+        String regCode =(String) redisTemplate.opsForValue().get(regCodeKey);
+
+        if (!code.equals(regCode)) {
+            result.setMessage("验证码错误");
+            result.setSuccess(false);
+            return result;
+        }
+
+        UserDO userDO2 = new UserDO();
+        userDO2.setUserName(userName);
+        userDO2.setNickName(userName);
+        userDO2.setEmail(email);
+        userDO2.setStudentNum(studentNum);
+
+        userDO2.setPassword(encodePassword(password));
+
+        int insertResult = userDAO.insert(userDO2);
+
+        if (insertResult > 0) {
+            result.setMessage("注册成功");
+            result.setCode("200");
+            result.setData(userDO2.toModel());
+            redisTemplate.opsForValue().set(studentNum, userDO2, 6, TimeUnit.HOURS);
+            userCache.evictTotalUsers();
+            userWebSocketHandler.broadcastTotalUsers(userCache.getTotalUsers());
+            return result;
+        } else {
+            result.setSuccess(false);
+            result.setMessage("注册失败");
+            return result;
+        }
+    }
+
+    /**
+     * 用户注册生成验证码
+     * @param studentNum
+     * @param email
+     * @return
+     */
+    @Override
+    public Result<String> buildRegCode(String studentNum, String email) {
+        Result<String> result = new Result<>();
         UserDO userDO1 =(UserDO) redisTemplate.opsForValue().get(studentNum);
 
         if (userDO1 == null) {
@@ -76,30 +130,18 @@ public class UserServiceImpl implements UserService {
             return result;
         }
 
-        UserDO userDO2 = new UserDO();
-        userDO2.setUserName(userName);
-        userDO2.setNickName(userName);
-        userDO2.setEmail(email);
-        userDO2.setStudentNum(studentNum);
+        Random random = new Random();
+        int code = random.nextInt(10000);
+        String codeNum = String.format("%04d", code);
+        result.setData(codeNum);
+        result.setMessage("生成注册验证码成功");
 
-        String saltPwd = password + "ljs_zwy";
-        String md5Pwd = DigestUtils.md5DigestAsHex(saltPwd.getBytes()).toUpperCase();
-        userDO2.setPassword(md5Pwd);
+        String regCodeKey = RedisConstant.EMAIL_REGISTER_CODE_PREFIX + studentNum;
+        redisTemplate.opsForValue().set(regCodeKey, codeNum, RedisConstant.EMAIL_REGISTER_CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
 
-        int insertResult = userDAO.insert(userDO2);
+        kafkaTemplate.send(Topics.KAFKA_REG_CODE_TOPIC, email, codeNum);
 
-        if (insertResult > 0) {
-            result.setMessage("注册成功");
-            result.setCode("200");
-            result.setData(userDO2.toModel());
-            redisTemplate.opsForValue().set(studentNum, userDO2, 6, TimeUnit.HOURS);
-            return result;
-        } else {
-            result.setSuccess(false);
-            result.setMessage("注册失败");
-            return result;
-        }
-
+        return result;
     }
 
     /**
@@ -150,21 +192,18 @@ public class UserServiceImpl implements UserService {
             return result;
         }
 
-        // 7. 密码校验
-        String saltPwd = password + "ljs_zwy";
-        String md5Pwd = DigestUtils.md5DigestAsHex(saltPwd.getBytes()).toUpperCase();
-
-        if (md5Pwd.equals(userDO.getPassword())) {
-            result.setCode("200");
-            result.setMessage("登录成功");
-            result.setData(userDO.toModel());
-            return result;
-        } else {
+        // 密码校验
+        if (!checkPassword(password, userDO.getPassword())) {
             result.setMessage("登录密码错误");
             result.setSuccess(false);
             result.setCode("603");
             return result;
         }
+
+        result.setCode("200");
+        result.setMessage("登录成功");
+        result.setData(userDO.toModel());
+        return result;
     }
 
     /**
@@ -196,6 +235,7 @@ public class UserServiceImpl implements UserService {
         if (result1 > 0) {
             //修改个人信息后更新redis缓存
             redisTemplate.opsForValue().set(studentNum, userDO, 6, TimeUnit.HOURS);
+            userCache.evict(userDO.getId());
             result.setCode("200");
             result.setMessage("更新个人信息成功");
             result.setData(userDO.toModel());
@@ -226,21 +266,17 @@ public class UserServiceImpl implements UserService {
             userDO = userDAO.findByStudentNum(studentNum);
         }
 
-        //旧密码校验
-        String saltPwd = oldPwd + "ljs_zwy";
-        String oldMd5Pwd = DigestUtils.md5DigestAsHex(saltPwd.getBytes()).toUpperCase();
-
-        if (!oldMd5Pwd.equals(userDO.getPassword())) {
+        //旧密码校验（支持 BCrypt 和旧 MD5）
+        if (!checkPassword(oldPwd, userDO.getPassword())) {
             result.setMessage("旧密码错误，修改密码失败");
             result.setSuccess(false);
             return result;
         }
 
-        String newSaltPwd = newPwd + "ljs_zwy";
-        String newMd5Pwd = DigestUtils.md5DigestAsHex(newSaltPwd.getBytes()).toUpperCase();
+        String newEncodedPwd = encodePassword(newPwd);
 
-        int result1 = userDAO.updatePwd(newMd5Pwd, studentNum);
-        userDO.setPassword(newMd5Pwd);
+        int result1 = userDAO.updatePwd(newEncodedPwd, studentNum);
+        userDO.setPassword(newEncodedPwd);
 
         if (result1 > 0) {
             result.setMessage("修改密码成功");
@@ -279,20 +315,17 @@ public class UserServiceImpl implements UserService {
             return result;
         }
 
-        String resetPwd = "123456";
-        String saltPwd = resetPwd + "ljs_zwy";
-        String resetMd5Pwd = DigestUtils.md5DigestAsHex(saltPwd.getBytes()).toUpperCase();
-
-        if (resetMd5Pwd.equals(userDO.getPassword())) {
+        if (checkPassword("123456", userDO.getPassword())) {
             result.setSuccess(false);
             result.setMessage("重置密码失败，密码已经为123456");
             return result;
         }
 
-        int setResult = userDAO.updatePwd(resetMd5Pwd, studentNum);
+        String resetEncodedPwd = encodePassword("123456");
+        int setResult = userDAO.updatePwd(resetEncodedPwd, studentNum);
 
         if (setResult > 0) {
-            userDO.setPassword(resetMd5Pwd);
+            userDO.setPassword(resetEncodedPwd);
             result.setCode("200");
             result.setMessage("重置密码成功");
             redisTemplate.opsForValue().set(studentNum, userDO, 6, TimeUnit.HOURS);
@@ -359,11 +392,12 @@ public class UserServiceImpl implements UserService {
 
         if (delResult > 0) {
             redisTemplate.delete(studentNum);
+            userCache.evict(userDO.getId());
+            userCache.evictTotalUsers();
+            userWebSocketHandler.broadcastTotalUsers(userCache.getTotalUsers());
             result.setMessage("删除用户成功");
             result.setCode("200");
             result.setData(userDO.toModel());
-
-
             return result;
         } else {
             result.setMessage("删除用户失败");
@@ -462,9 +496,6 @@ public class UserServiceImpl implements UserService {
         Result<String> result1 = new Result<>();
         result1.setSuccess(true);
 
-        Result<User> result = new Result<>();
-        result.setSuccess(true);
-
         UserDO userDO = userDAO.findByStudentNum(studentNum);
 
         if (userDO == null) {
@@ -479,6 +510,12 @@ public class UserServiceImpl implements UserService {
             return result1;
         }
 
+        if (checkPassword("123456", userDO.getPassword())) {
+            result1.setSuccess(false);
+            result1.setMessage("密码已为123456，重置密码失败");
+            return result1;
+        }
+
         Random random = new Random();
         int code = random.nextInt(10000);
         String codeNum = String.format("%04d", code);
@@ -489,9 +526,65 @@ public class UserServiceImpl implements UserService {
         String emailCodeKey = RedisConstant.EMAIL_CODE_KEY_PREFIX + studentNum;
         redisTemplate.opsForValue().set(emailCodeKey, codeNum, RedisConstant.EMAIL_CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
 
-
+        //异步发送验证码到kafka
         kafkaTemplate.send(Topics.KAFKA_CODE_TOPIC, email, codeNum);
 
         return result1;
+    }
+
+    @Override
+    public Result<User> findByStudentNum(String studentNum) {
+        Result<User> result = new Result<>();
+        result.setSuccess(true);
+
+        UserDO userDO = (UserDO) redisTemplate.opsForValue().get(studentNum);
+        if (userDO == null) {
+            userDO = userDAO.findByStudentNum(studentNum);
+        }
+
+        if (userDO == null || userDO.getId() <= 0) {
+            result.setSuccess(false);
+            result.setMessage("用户不存在");
+            result.setCode("601");
+            return result;
+        }
+
+        result.setCode("200");
+        result.setData(userDO.toModel());
+        return result;
+    }
+
+    @Override
+    public Result<User> updateAvatar(String studentNum, String avatarUrl) {
+        Result<User> result = new Result<>();
+        result.setSuccess(true);
+
+        UserDO userDO = (UserDO) redisTemplate.opsForValue().get(studentNum);
+        if (userDO == null) {
+            userDO = userDAO.findByStudentNum(studentNum);
+        }
+
+        if (userDO == null || userDO.getId() <= 0) {
+            result.setSuccess(false);
+            result.setMessage("用户不存在");
+            result.setCode("601");
+            return result;
+        }
+
+        userDO.setAvatar(avatarUrl);
+        int updateResult = userDAO.updateByStudentNum(userDO);
+
+        if (updateResult > 0) {
+            redisTemplate.opsForValue().set(studentNum, userDO, 6, TimeUnit.HOURS);
+            userCache.evict(userDO.getId());
+            result.setCode("200");
+            result.setMessage("头像上传成功");
+            result.setData(userDO.toModel());
+            return result;
+        } else {
+            result.setSuccess(false);
+            result.setMessage("头像上传失败");
+            return result;
+        }
     }
 }

@@ -30,4 +30,6 @@ public interface UserDAO {
 
      UserDO selectByUserId(long userId);
 
+     List<UserDO> selectByUserIds(List<Long> userIds);
+
 }

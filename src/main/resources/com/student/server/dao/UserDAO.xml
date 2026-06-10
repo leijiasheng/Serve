@@ -103,4 +103,13 @@
         from `user`
         where id=#{userId}
     </select>
+
+    <select id="selectByUserIds" resultMap="userResultMap">
+        select id, student_num, user_name, nick_name, email
+        from `user`
+        where id in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
 </mapper>

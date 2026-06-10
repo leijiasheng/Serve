@@ -8,8 +8,6 @@ import lombok.Setter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;

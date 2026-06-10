@@ -1,0 +1,26 @@
+services:
+  backend:
+    build: .
+    image: student-server:latest
+    container_name: student-backend
+    ports:
+      - "8085:8085"
+    environment:
+      - SERVER_PORT=8085
+      - SPRING_DATASOURCE_URL=jdbc:mysql://rm-bp1w25a2x5v56cxk14o.mysql.rds.aliyuncs.com:3306/serverdb?serverTimezone=GMT%2B8
+      - SPRING_DATASOURCE_USERNAME=jiasheng
+      - 'SPRING_DATASOURCE_PASSWORD=!@#060321Ljs'
+      - SPRING_DATA_REDIS_HOST=47.99.86.70
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PASSWORD=leijiashengredis
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=47.99.86.70:9093
+      - SERVER_SERVLET_SESSION_COOKIE_DOMAIN=47.99.86.70
+      - SERVER_SERVLET_SESSION_COOKIE_SAME_SITE=none
+      - SERVER_SERVLET_SESSION_COOKIE_SECURE=false
+      - UPLOAD_DIR=/app
+    volumes:
+      - uploads-data:/app/uploads
+    restart: unless-stopped
+
+volumes:
+  uploads-data:

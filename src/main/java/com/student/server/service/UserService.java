@@ -9,7 +9,7 @@ import java.util.List;
 public interface UserService {
 
     public Result<User> register(String userName, String password,
-                                 String email, String studentNum);
+                                 String email, String studentNum, String code);
 
     public Result<User> login(String studentNum, String password);
 
@@ -33,5 +33,10 @@ public interface UserService {
 
     public Result<String> buildCode(String studentNum, String email);
 
+    public Result<String> buildRegCode(String studentNum, String email);
+
+    public Result<User> updateAvatar(String studentNum, String avatarUrl);
+
+    public Result<User> findByStudentNum(String studentNum);
 
 }
