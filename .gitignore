@@ -1,51 +1,18 @@
-<<<<<<< HEAD
 HELP.md
+
+# 构建产物
 target/
-.mvn/wrapper/maven-wrapper.jar
+build/
 !**/src/main/**/target/
 !**/src/test/**/target/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+.mvn/wrapper/maven-wrapper.jar
 
-### VS Code ###
-.vscode/
-=======
-# Compiled class file
+# 编译产物
 *.class
 
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+# 打包产物
 *.jar
 *.war
 *.nar
@@ -54,7 +21,60 @@ build/
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# 日志
+*.log
+logs/
+
+# JVM 崩溃日志
 hs_err_pid*
 replay_pid*
->>>>>>> ec7852e212021ea682a5fe891bf8e1ce2ff67b50
+
+# ==================== IDE ====================
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### Eclipse / STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### BlueJ ###
+*.ctxt
+
+### Mobile Tools for Java (J2ME) ###
+.mtj.tmp/
+
+# ==================== 运行时产物 ====================
+
+# 用户上传文件（头像等），不应进版本库
+uploads/
+
+# 本地配置覆盖，含个人凭据，严禁提交
+application-local.yml
+application-local.properties
+.env
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# Claude Code 本地设置（可能含本机路径与主机名）
+.claude/settings.local.json

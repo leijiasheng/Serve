@@ -1,28 +1,29 @@
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
 
 spring:
   application:
     name: Server
 
   datasource:
-    url: jdbc:mysql://rm-bp1w25a2x5v56cxk14o.mysql.rds.aliyuncs.com:3306/serverdb?serverTimezone=GMT%2B8
-    username: jiasheng
-    password: "!@#060321Ljs"
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://127.0.0.1:3306/serverdb?serverTimezone=GMT%2B8}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
     druid:
       stat-view-servlet:
-        enabled: true
+        # 生产环境建议置为 false
+        enabled: ${DRUID_CONSOLE_ENABLED:true}
         url-pattern: /druid/*
-        login-username: admin
-        login-password: admin
+        login-username: ${DRUID_USERNAME:admin}
+        login-password: ${DRUID_PASSWORD:}
         allow:
         deny:
 
   data:
     redis:
-      host: 47.99.86.70
-      port: 6379
-      password: leijiashengredis
+      host: ${SPRING_DATA_REDIS_HOST:127.0.0.1}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
 
   jackson:
     deserialization:
@@ -30,7 +31,7 @@ spring:
     default-property-inclusion: non_null
 
   kafka:
-    bootstrap-servers: 47.99.86.70:9093
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -61,12 +62,20 @@ mybatis:
 
 send:
   message:
-    email: ljs060321@qq.com
-    code: bxtumjelwedididg
+    # QQ 邮箱需开启 SMTP 并使用授权码，而非登录密码
+    email: ${SEND_MESSAGE_EMAIL:}
+    code: ${SEND_MESSAGE_CODE:}
 
 jwt:
-  secret: leijiasheng-jwt-secret-key-2026-server-app-256bit-abcdef123456
-  expiration: 86400000
+  # 至少 256 bit（32 字节）随机字符串，请勿使用示例值；可用
+  #   openssl rand -base64 48
+  # 生成后通过环境变量注入
+  secret: ${JWT_SECRET:}
+  # 24h
+  expiration: ${JWT_EXPIRATION:86400000}
+
+upload:
+  dir: ${UPLOAD_DIR:${user.dir}}
 
 springdoc:
   api-docs:
